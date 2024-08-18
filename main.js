@@ -1,47 +1,25 @@
 const fs = require('fs');
 
-const filePath = process.argv[2];
-
-function readFileAsync(filePath) {
-  return new Promise((resolve, reject) => {
-    fs.readFile(filePath, 'utf8', (err, data) => {
-      if (err) {
-        reject(`Error reading file ${filePath}: ${err.message}`);
-        return;
-      }
-      resolve(data);
-    });
-  });
+async function modifyText(text) {
+  return text.toUpperCase().split('').reverse().join('');
 }
 
-function modifyText(text) {
-  return new Promise((resolve, reject) => {
-    try {
-      // Convert text to uppercase
-      const upperCaseText = text.toUpperCase();
-      
-      // Reverse the text
-      const reversedText = upperCaseText.split('').reverse().join('');
-      
-      resolve(reversedText);
-    } catch (err) {
-      reject(`Error modifying text: ${err.message}`);
-    }
-  });
+async function main(filePath) {
+  try {
+    const data = await fs.promises.readFile(filePath, 'utf8');
+    const modified = await modifyText(data);
+    console.log(modified);
+  } catch (error) {
+    console.error(`Error reading file ${filePath}: ${error.message}`);
+    process.exit(1);
+  }
 }
 
-// Check if file path is provided
-if (!filePath) {
-  console.error('Please provide a file path as a command-line argument.');
-  process.exit(1);
+if (require.main === module) {
+  const filePath = process.argv[2];
+  if (!filePath) {
+    console.error("Please provide a file path.");
+    process.exit(1);
+  }
+  main(filePath);
 }
-
-// Read and modify the file content
-readFileAsync(filePath)
-  .then((data) => modifyText(data))
-  .then((modifiedText) => {
-    console.log(modifiedText);
-  })
-  .catch((error) => {
-    console.error(error);
-  });
